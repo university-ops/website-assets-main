@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="ru" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://super-dev-styles.github.io/website-assets/styles.css" rel="stylesheet">
+    <link href="https://super-dev-styles.github.io/website-assets/view.css" rel="stylesheet">
+
+<!--    <link href="https://super-dev-styles.github.io/website-assets/slides.css" rel="stylesheet">-->
+<!--    <script src="https://super-dev-styles.github.io/website-assets/slides.js" defer></script>-->
+    <link rel="stylesheet" href="ru.javarush.fastapi/slides.css">
+    <script src="ru.javarush.fastapi/slides.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <link href="https://super-dev-styles.github.io/website-assets/styles.css" rel="stylesheet">
+    <link href="https://super-dev-styles.github.io/website-assets/view.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: false });</script>
+  <title>Уровень 1: Введение в FastAPI</title>
+</head>
+<body>
+<div class="content lecture-content post-content">
+  <db-content>
+    <h1>Уровень 1: Введение в FastAPI</h1>
+      <hr>
+    <h2>Что такое FastAPI и почему он важен</h2>
+    <p><b>FastAPI</b> — это современный, высокопроизводительный веб-фреймворк на Python для создания <b>API</b> и микросервисов.</p>
+    <p>Он построен на основе <b>асинхронной</b> архитектуры ASGI (Asynchronous Server Gateway Interface), что позволяет ему эффективно обрабатывать большое количество одновременных подключений. Это делает его идеальным выбором для высоконагруженных систем, real-time приложений (чаты, уведомления) и микросервисной архитектуры.</p>
+    <p><b>Ключевые особенности:</b></p>
+    <ul>
+      <li>один из самых быстрых фреймворков Python: сопоставим с NodeJS и Go.</li>
+      <li>встроенная поддержка <code>async</code> и <code>await</code> для неблокирующих операций.</li>
+      <li>использует стандартные аннотации типов Python и библиотеку <b>Pydantic</b> для валидации данных, что уменьшает количество ошибок.</li>
+      <li>генерирует интерактивную документацию API (Swagger UI / OpenAPI и ReDoc) прямо из вашего кода.</li>
+      <li>минималистичный синтаксис и автодокументация значительно ускоряют процесс создания API.</li>
+    </ul>
+      <h3>Базовая архитектура FastAPI</h3>
+      <p>Чтобы понимать, почему FastAPI так эффективен, важно видеть его архитектуру в целом. Процесс обработки одного запроса можно представить как конвейер, где каждый компонент выполняет четкую задачу.</p>
+      <div class="mermaid">
+          graph TD
+          A[Клиент ] -- 1 HTTP Запрос --> B[Uvicorn];
+          B -- 2 Передает запрос приложению --> C{FastAPI Приложение};
+          subgraph "Внутри FastAPI"
+          C -- 3 Маршрутизация (поиск нужного эндпоинта) --> D["Код вашего эндпоинта<br/>async def my_func(...):"];
+          D -- 4 Валидация данных запроса (Pydantic) --> E[Выполнение вашей бизнес-логики];
+          E -- 5 Возврат результата (dict, list, ...) --> F["Сериализация ответа (Pydantic)"];
+          end
+          F -- 6 Готовый JSON-ответ --> C;
+          C -- 7 Передает готовый ответ серверу --> B;
+          B -- 8 HTTP Ответ --> A;
+
+          style B fill:#f9f,stroke:#333,stroke-width:2px;
+          style C fill:#ccf,stroke:#333,stroke-width:2px;
+      </div>
+    <hr>
+    <h2>Сравнение FastAPI с Django и Flask</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>Критерий</th>
+        <th>Django</th>
+        <th>Flask</th>
+        <th>FastAPI</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td><b>Тип</b></td>
+        <td>монолитный фреймворк ("батарейки в комплекте")</td>
+        <td>микрофреймворк (минималистичный)</td>
+        <td>микрофреймворк (с фокусом на API)</td>
+      </tr>
+      <tr>
+        <td><b>Основное применение</b></td>
+        <td>крупные веб-приложения, сайты с админкой</td>
+        <td>простые сайты, прототипы, гибкие проекты</td>
+        <td>высокопроизводительные API, микросервисы</td>
+      </tr>
+      <tr>
+        <td><b>Асинхронность (ASGI)</b></td>
+        <td>поддерживается, но не является основной парадигмой</td>
+        <td>требует дополнительной настройки (Flask 2.0+)</td>
+        <td>встроена в ядро, основное преимущество</td>
+      </tr>
+      <tr>
+        <td><b>Валидация данных</b></td>
+        <td>Django Forms / DRF Serializers</td>
+        <td>требует сторонних библиотек (Marshmallow, WTForms)</td>
+        <td>встроена через <b>Pydantic</b> (строгая типизация)</td>
+      </tr>
+      <tr>
+        <td><b>Документация API</b></td>
+        <td>требует DRF или сторонних библиотек</td>
+        <td>требует сторонних библиотек (Flasgger)</td>
+        <td><b>автоматическая</b> (Swagger UI, ReDoc) "из коробки"</td>
+      </tr>
+      </tbody>
+    </table>
+    <p>Django хорош для монолитных сайтов. Flask дает максимальную гибкость. <b>FastAPI — лучший выбор для создания современных, быстрых и надежных API</b>, благодаря встроенной асинхронности, валидации данных и автодокументации.</p>
+    <hr>
+    <h2>Установка FastAPI и Uvicorn</h2>
+    <p>FastAPI — это сам фреймворк. Для его запуска необходим <b>ASGI-сервер</b>, который будет обрабатывать асинхронные запросы. Самый популярный сервер для FastAPI — это <b>Uvicorn</b>.</p>
+    <p><b>Шаги установки (рекомендуется в виртуальном окружении):</b></p>
+    <ol>
+      <li><b>Создание и активация виртуального окружения:</b>
+          <pre><code class="language-bash">python -m venv venv
+source venv/bin/activate  # macOS/Linux
+# venv\Scripts\activate    # Windows
+</code></pre>
+      </li>
+      <li><b>Установка FastAPI:</b>
+        <pre><code class="language-bash">pip install fastapi
+</code></pre>
+      </li>
+      <li><b>Установка Uvicorn:</b>
+        <p>Пакет <code>"uvicorn[standard]"</code> включает дополнительные зависимости для лучшей производительности.</p>
+        <pre><code class="language-bash">pip install "uvicorn[standard]"
+</code></pre>
+      </li>
+      <li><b>Сохранение зависимостей:</b>
+        <pre><code class="language-bash">pip freeze > requirements.txt
+</code></pre>
+      </li>
+    </ol>
+    <hr>
+    <h2>Настройка проекта и структура приложения FastAPI</h2>
+    <p>Для FastAPI не существует строгой, обязательной структуры проекта, как в Django. Однако для поддержания порядка рекомендуется следовать определенным соглашениям.</p>
+    <p><b>Минимальная структура:</b></p>
+    <pre><code>my_project/
+└── main.py
+</code></pre>
+    <p>В файле <code>main.py</code> создается экземпляр <code>FastAPI</code> и определяются эндпоинты.</p>
+    <p><b>Рекомендуемая структура для средних и крупных проектов:</b></p>
+    <pre><code>my_project/
+├── app/                  # Основная папка приложения
+│   ├── __init__.py
+│   ├── main.py           # Главный файл, собирающий приложение
+│   ├── core/
+│   │   └── config.py     # Настройки
+│   ├── routers/
+│   │   ├── __init__.py
+│   │   └── posts.py      # Маршруты для постов
+│   │   └── users.py      # Маршруты для пользователей
+│   ├── schemas/
+│   │   └── posts.py      # Pydantic модели (схемы)
+│   └── crud/
+│       └── posts.py      # Функции для работы с БД
+├── tests/                # Папка с тестами
+└── .env                  # Переменные окружения
+</code></pre>
+    <p>В <code>main.py</code> роутеры из папки <code>routers/</code> подключаются к основному приложению с помощью <code>app.include_router()</code>. Это делает код модульным и читаемым.</p>
+    <hr>
+    <h2>Создание первого простого API (GET-запрос)</h2>
+    <p><b>В FastAPI эндпоинты создаются с помощью <b>декораторов операций пути (Path Operation Decorators)</b>.</b></p>
+    <p>Для обработки GET-запроса используется декоратор <code>@app.get()</code>.</p>
+    <p><b>Пример (<code>main.py</code>):</b></p>
+<pre class="language-python"><code>from fastapi import FastAPI
+
+# 1. Создаем экземпляр приложения FastAPI
+app = FastAPI()
+
+# 2. Определяем эндпоинт для GET-запроса по корневому URL ("/")
+# Эта функция будет вызываться, когда кто-то зайдет на http://127.0.0.1:8000/
+@app.get("/")
+def read_root():
+    # 3. Возвращаем словарь, который FastAPI автоматически преобразует в JSON
+    return {"message": "Hello, World!"}
+
+# Другой эндпоинт
+@app.get("/items/")
+def get_items():
+    return {"items": ["Яблоко", "Банан", "Апельсин"]}
+</code></pre>
+    <p><b>Запуск сервера.</b> В терминале, находясь в папке с <code>main.py</code>, выполните:</p>
+    <pre><code class="language-bash">uvicorn main:app --reload
+</code></pre>
+    <ul>
+      <li><code>main</code>: имя файла <code>main.py</code>.</li>
+      <li><code>app</code>: имя переменной с экземпляром <code>FastAPI</code> внутри файла.</li>
+      <li><code>--reload</code>: сервер будет автоматически перезапускаться при изменениях в коде.</li>
+    </ul>
+    <hr>
+    <h2>Концепция эндпоинтов</h2>
+    <p><b>Маршрутизация (Routing)</b> в FastAPI — это процесс сопоставления URL-адреса и HTTP-метода запроса с конкретной функцией-обработчиком (эндпоинтом).</p>
+    <p><b>Path Operations</b></p>
+    <p>FastAPI предоставляет декораторы для всех основных HTTP-методов:</p>
+    <ul>
+      <li><code>@app.get()</code></li>
+      <li><code>@app.post()</code></li>
+      <li><code>@app.put()</code></li>
+      <li><code>@app.delete()</code></li>
+      <li><code>@app.patch()</code>, <code>@app.options()</code>, <code>@app.head()</code>, <code>@app.trace()</code></li>
+    </ul>
+    <p><b>Path Parameters.</b><br>
+      Вы можете определять динамические части в URL, используя фигурные скобки. Значения этих частей передадутся в вашу функцию как аргументы. FastAPI автоматически валидирует их тип на основе аннотаций типов Python.</p>
+    <pre class="language-python"><code>@app.get("/items/{item_id}")
+def read_item(item_id: int): # FastAPI проверит, что item_id — это число
+    return {"item_id": item_id, "description": f"Это товар номер {item_id}"}
+</code></pre>
+    <p><b>Запрос:</b> <code>GET /items/123</code> -> <code>item_id</code> будет <code>123</code> (тип <code>int</code>).<br>
+      <b>Запрос:</b> <code>GET /items/abc</code> -> FastAPI вернет ошибку <code>422 Unprocessable Entity</code>.</p>
+    <hr>
+    <h2>Query Parameters</h2>
+    <p><b>Query Parameters</b> — это параметры, передаваемые в URL после знака <code>?</code> в виде пар <code>ключ=значение</code>. Они используются для фильтрации, сортировки или пагинации.</p>
+    <p><b>Пример URL:</b> <code>/items/?skip=0&limit=10</code></p>
+    <p>В FastAPI Query-параметры определяются как аргументы функции, которые <b>не являются</b> частью пути.</p>
+    <p><b>Пример:</b></p>
+    <pre class="language-python"><code>from fastapi import FastAPI, Query
+from typing import Optional, List # Для опциональных параметров и списков
+
+app = FastAPI()
+
+# Базовый пример с опциональным параметром
+@app.get("/search")
+def search_items(query: Optional[str] = None): # 'query' — query-параметр
+    if query:
+        return {"message": f"Поиск по запросу: '{query}'"}
+    return {"message": "Покажите все элементы"}
+
+# Пример с валидацией и значениями по умолчанию
+@app.get("/products")
+def get_products(
+    is_available: bool = True, # Обязательный (т.к. нет Optional), по умолчанию True
+    limit: int = Query(10, gt=0, le=100), # Валидация: limit > 0 и <= 100
+    tags: Optional[List[str]] = Query(None) # Список query-параметров
+):
+    # URL: /products/?tags=new&tags=sale
+    # tags будет ['new', 'sale']
+    return {"limit": limit, "is_available": is_available, "tags": tags}
+</code></pre>
+    <p>Использование <code>Query()</code> из <code>fastapi</code> позволяет добавлять валидацию (больше, меньше, длина строки и т.д.) и метаданные для документации.</p>
+    <hr>
+    <h2>Ответы от API: форматы данных</h2>
+    <p>FastAPI по умолчанию возвращает ответы в формате <b>JSON</b>. Вы можете возвращать из функции-обработчика стандартные типы Python, и FastAPI автоматически преобразует их:</p>
+    <ul>
+      <li><code>dict</code> -> JSON object <code>{}</code></li>
+      <li><code>list</code> -> JSON array <code>[]</code></li>
+      <li><code>str</code>, <code>int</code>, <code>float</code>, <code>bool</code> -> JSON string, number, boolean</li>
+    </ul>
+    <p><b>Использование <code>response_model</code>.</b><br>
+      Для обеспечения строгой типизации <i>ответа</i> API, можно использовать аргумент декоратора <code>response_model</code>. Он принимает <b>Pydantic-модель</b> и гарантирует, что ответ будет соответствовать ее структуре (отфильтрует лишние поля, преобразует типы).</p>
+    <pre class="language-python"><code>from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import Optional
+
+class UserOut(BaseModel): # Pydantic модель для ответа
+    id: int
+    username: str
+    email: Optional[str] = None
+
+app = FastAPI()
+
+@app.get("/users/{user_id}", response_model=UserOut)
+def get_user(user_id: int):
+    # Предположим, мы получили из БД объект с лишними полями (например, хэш пароля)
+    user_from_db = {
+        "id": user_id,
+        "username": "alex",
+        "email": "alex@example.com",
+        "hashed_password": "very_secret_hash_value"
+    }
+    # FastAPI отфильтрует ответ согласно UserOut, и hashed_password не попадет в JSON
+    return user_from_db
+</code></pre>
+    <p>Это также улучшает автоматическую документацию, показывая точную схему ответа.</p>
+    <hr>
+    <h2>Встроенная документация с OpenAPI (Swagger)</h2>
+    <p>Одним из главных преимуществ FastAPI является <b>автоматическая генерация интерактивной документации API</b>.</p>
+    <p><b>Как это работает:</b></p>
+    <ul>
+      <li>FastAPI анализирует ваш код: пути, декораторы операций (<code>@app.get</code>), параметры функций, их аннотации типов, Pydantic-модели.</li>
+      <li>На основе этого анализа он генерирует схему API в соответствии со стандартом <b>OpenAPI</b>.</li>
+      <li>Эта схема используется для создания двух вариантов интерактивной документации, доступных в браузере.</li>
+    </ul>
+    <p><b>URL документации (по умолчанию):</b></p>
+    <ul>
+      <li><b><code>/docs</code></b>: интерактивный интерфейс <b>Swagger UI</b>. Позволяет не только просматривать документацию, но и <b>тестировать эндпоинты</b> прямо из браузера.</li>
+      <li><b><code>/redoc</code></b>: альтернативный интерфейс <b>ReDoc</b>. Предоставляет чистую и легко читаемую документацию (без возможности отправки запросов).</li>
+    </ul>
+    <p><b>Генерация документации</b></p>
+    <div class="mermaid">
+      graph TD
+      A[Код FastAPI<br/>- Декораторы<br/>- Аннотации типов<br/>- Pydantic модели] --> B{Анализ кода};
+      B --> C[Генерация OpenAPI схемы];
+      C --> D(Swagger UI<br/>Интерактивная документация<br/>на /docs);
+      C --> E(ReDoc<br/>Документация для чтения<br/>на /redoc);
+
+      style C fill:#ccf,stroke:#333;
+    </div>
+    <p>Код FastAPI является единственным источником правды. Из него генерируется OpenAPI схема, которая затем визуализируется с помощью Swagger UI и ReDoc.</p>
+    <hr>
+    <h2>Пример минимального приложения FastAPI</h2>
+    <p>Этот пример объединяет несколько рассмотренных концепций.</p>
+    <p><b>Файл <code>main.py</code>:</b></p>
+    <pre class="language-python"><code>from fastapi import FastAPI, Query
+from pydantic import BaseModel
+from typing import Optional, List
+
+# --- Pydantic модель для ответа ---
+class Item(BaseModel):
+    id: int
+    name: str
+    is_offer: Optional[bool] = None
+
+# --- Экземпляр FastAPI ---
+app = FastAPI(
+    title="Мое Первое API",
+    description="Это демонстрационный API на FastAPI",
+    version="1.0.0",
+)
+
+# --- Данные (заглушка вместо БД) ---
+db_items = {
+    1: {"id": 1, "name": "Яблоко"},
+    2: {"id": 2, "name": "Банан", "is_offer": True},
+    3: {"id": 3, "name": "Апельсин"},
+}
+
+# --- Эндпоинты ---
+@app.get("/", summary="Корневой эндпоинт")
+async def read_root():
+    return {"message": "Добро пожаловать в FastAPI!"}
+
+@app.get("/items/", response_model=List[Item], summary="Получить список товаров")
+async def get_items(limit: int = Query(10, gt=0, le=100)):
+    return list(db_items.values())[:limit]
+
+@app.get("/items/{item_id}", response_model=Item, summary="Получить товар по ID")
+async def get_item_by_id(item_id: int):
+    return db_items.get(item_id)
+</code></pre>
+    <p><b>Запуск:</b> <code>uvicorn main:app --reload</code>.<br>
+      <b>Тестирование:</b> откройте <code>http://127.0.0.1:8000/docs</code> в браузере.</p>
+      <hr>
+  </db-content>
+    <footer class="site-footer">
+        <div class="footer-logo-link">
+            </div>
+    </footer>
+</div>
+</body>
+</html>
